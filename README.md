@@ -47,3 +47,9 @@ salesinsight-py/
 ├── README.md
 ├── salesinsight.py
 └── vendas.csv
+
+## Autor
+
+Cristhyan Allan Ribeiro  
+Curso de Desenvolvimento de IA para Análise Preditiva  
+Programa SCTEC - SENAI/SC
