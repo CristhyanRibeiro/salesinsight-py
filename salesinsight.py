@@ -41,7 +41,13 @@ def gerar_dataset_vendas(caminho_csv="vendas.csv", n_registros=200, seed=42):
         "Headset": 350
     }
 
-    regioes = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
+    regioes = [
+        "Sudeste",
+        "Sul",
+        "Nordeste",
+        "Centro-Oeste",
+        "Norte"
+    ]
 
     data_inicio = datetime(2025, 1, 1)
 
@@ -64,8 +70,15 @@ def gerar_dataset_vendas(caminho_csv="vendas.csv", n_registros=200, seed=42):
             produto = random.choice(produtos)
             categoria = categorias[produto]
             quantidade = random.randint(1, 10)
-            preco = round(precos[produto] * random.uniform(0.85, 1.15), 2)
-            data = data_inicio + timedelta(days=random.randint(0, 364))
+            preco = round(
+                precos[produto] * random.uniform(0.85, 1.15),
+                2
+            )
+
+            data = data_inicio + timedelta(
+                days=random.randint(0, 364)
+            )
+
             data_txt = data.strftime("%Y-%m-%d")
             cliente = f"Cliente_{random.randint(1, 50):03d}"
 
@@ -101,7 +114,9 @@ def gerar_dataset_vendas(caminho_csv="vendas.csv", n_registros=200, seed=42):
                 "preco_unitario": preco
             })
 
-    print(f"Dataset gerado com {n_registros} registros em {caminho_csv}.")
+    print(
+        f"Dataset gerado com {n_registros} registros em {caminho_csv}."
+    )
 
 
 def carregar_dataset(caminho_csv):
@@ -183,13 +198,18 @@ def limpar_dados(registros):
             continue
 
         # Verifica valores ausentes
-        if linha["quantidade"] == "" or linha["preco_unitario"] == "":
+        if (
+            linha["quantidade"] == ""
+            or linha["preco_unitario"] == ""
+        ):
             relatorio["removidos_nulos"] += 1
             continue
 
         # Converte os tipos numericos
         linha["quantidade"] = int(linha["quantidade"])
-        linha["preco_unitario"] = float(linha["preco_unitario"])
+        linha["preco_unitario"] = float(
+            linha["preco_unitario"]
+        )
 
         # Limpa o nome do cliente
         nome_limpo = re.sub(
@@ -220,10 +240,22 @@ def limpar_dados(registros):
     relatorio["finais"] = len(limpos)
 
     print("\n=== RELATORIO DE LIMPEZA ===")
-    print("Registros iniciais:", relatorio["iniciais"])
-    print("Removidos por data invalida:", relatorio["removidos_data"])
-    print("Removidos por valores ausentes:", relatorio["removidos_nulos"])
-    print("Registros finais:", relatorio["finais"])
+    print(
+        "Registros iniciais:",
+        relatorio["iniciais"]
+    )
+    print(
+        "Removidos por data invalida:",
+        relatorio["removidos_data"]
+    )
+    print(
+        "Removidos por valores ausentes:",
+        relatorio["removidos_nulos"]
+    )
+    print(
+        "Registros finais:",
+        relatorio["finais"]
+    )
 
     return limpos, relatorio
 
@@ -250,7 +282,8 @@ def criar_colunas_derivadas(registros):
 
         # Receita da venda
         linha["receita_total"] = (
-            linha["quantidade"] * linha["preco_unitario"]
+            linha["quantidade"]
+            * linha["preco_unitario"]
         )
 
         # Mes e ano
@@ -309,29 +342,47 @@ def calcular_metricas(registros):
         por_mes[mes]["quantidade"] += quantidade
         por_mes[mes]["vendas"] += 1
 
-        # Receita por produto
+        # Metricas por produto
         if produto not in por_produto:
-            por_produto[produto] = 0
+            por_produto[produto] = {
+                "receita": 0,
+                "quantidade": 0,
+                "vendas": 0
+            }
 
-        por_produto[produto] += receita
+        por_produto[produto]["receita"] += receita
+        por_produto[produto]["quantidade"] += quantidade
+        por_produto[produto]["vendas"] += 1
 
-        # Receita por categoria
+        # Metricas por categoria
         if categoria not in por_categoria:
-            por_categoria[categoria] = 0
+            por_categoria[categoria] = {
+                "receita": 0,
+                "quantidade": 0,
+                "vendas": 0
+            }
 
-        por_categoria[categoria] += receita
+        por_categoria[categoria]["receita"] += receita
+        por_categoria[categoria]["quantidade"] += quantidade
+        por_categoria[categoria]["vendas"] += 1
 
-        # Receita por regiao
+        # Metricas por regiao
         if regiao not in por_regiao:
-            por_regiao[regiao] = 0
+            por_regiao[regiao] = {
+                "receita": 0,
+                "quantidade": 0,
+                "vendas": 0
+            }
 
-        por_regiao[regiao] += receita
+        por_regiao[regiao]["receita"] += receita
+        por_regiao[regiao]["quantidade"] += quantidade
+        por_regiao[regiao]["vendas"] += 1
 
     # Ticket medio mensal
     for mes in por_mes:
         por_mes[mes]["ticket_medio"] = (
-            por_mes[mes]["receita"] /
-            por_mes[mes]["vendas"]
+            por_mes[mes]["receita"]
+            / por_mes[mes]["vendas"]
         )
 
     metricas = {
@@ -434,7 +485,10 @@ def exportar_resultados(metricas, segmentacao, registros):
 
             escritor.writerow({
                 "mes": mes,
-                "receita": round(dados["receita"], 2),
+                "receita": round(
+                    dados["receita"],
+                    2
+                ),
                 "quantidade": dados["quantidade"],
                 "vendas": dados["vendas"],
                 "ticket_medio": round(
@@ -467,10 +521,7 @@ def exportar_resultados(metricas, segmentacao, registros):
         for cliente in segmentacao:
             escritor.writerow({
                 "cliente": cliente["cliente"],
-                "total_compras": round(
-                    cliente["total_compras"],
-                    2
-                ),
+                "total_compras": cliente["total_compras"],
                 "segmento": cliente["segmento"]
             })
 
@@ -507,7 +558,6 @@ def ler_json_resultados():
         "r",
         encoding="utf-8"
     ) as arquivo:
-
         dados = json.load(arquivo)
 
     print("\n=== ESTATISTICAS GERAIS ===")
@@ -539,8 +589,34 @@ def main():
     # 5. Calcula as metricas
     metricas = calcular_metricas(registros_limpos)
 
+    print("\n=== METRICAS POR PRODUTO ===")
+
+    for produto in metricas["por_produto"]:
+        print(
+            produto,
+            metricas["por_produto"][produto]
+        )
+
+    print("\n=== METRICAS POR CATEGORIA ===")
+
+    for categoria in metricas["por_categoria"]:
+        print(
+            categoria,
+            metricas["por_categoria"][categoria]
+        )
+
+    print("\n=== METRICAS POR REGIAO ===")
+
+    for regiao in metricas["por_regiao"]:
+        print(
+            regiao,
+            metricas["por_regiao"][regiao]
+        )
+
     # 6. Segmenta os clientes
-    segmentacao = segmentar_clientes(registros_limpos)
+    segmentacao = segmentar_clientes(
+        registros_limpos
+    )
 
     # 7. Demonstra funcao recebendo outra funcao
     receita_total = aplicar_operacao(
